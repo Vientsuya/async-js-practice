@@ -1,6 +1,6 @@
 function doubleNum(num, time) {
   return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(num), time);
+    setTimeout(() => resolve(num * 2), time);
   });
 }
 
@@ -17,25 +17,20 @@ function createQueue(tasks, maxNumOfWorkers) {
   let taskIndex = 0;
 
   return new Promise((resolve) => {
+    const handleResult = (index) => (result) => {
+      console.log(`Task number: ${index + 1} finished with result: ${result}`);
+      tasks[index] = result;
+      taskIndex++;
+      getNextTask();
+    };
+
     const getNextTask = () => {
       if (taskIndex < tasks.length) {
         tasks[taskIndex]()
-          .then((result) => {
-            console.log(
-              `Processed task number: ${taskIndex + 1} with value: ${result}`
-            );
-            tasks[taskIndex] = result * 2;
-            taskIndex++;
-            getNextTask();
-          })
-          .catch((error) => {
-            console.log(`An error occured in task number ${taskIndex + 1}`);
-            tasks[taskIndex] = error;
-            taskIndex++;
-            getNextTask();
-          });
+          .then(handleResult(taskIndex))
+          .catch(handleResult(taskIndex));
       } else {
-        console.log("All task resolved");
+        console.log("All tasks done successfully");
         resolve(tasks);
       }
     };
